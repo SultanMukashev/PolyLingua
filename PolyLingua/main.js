@@ -11,6 +11,7 @@ import {
   getFirestore,
   collection,
   getDocs,
+  setDoc,
   addDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -76,7 +77,7 @@ removePhoto.onclick = function(){
 };
 // https://firebasestorage.googleapis.com/v0/b/polylingua-94f50.appspot.com/o/WhatsApp%20Image%202024-01-11%20at%2011.06.09.jpeg?alt=media&token=2aa98361-69de-4224-896a-90cc0951b813
 let uploadedImageUrl = null;
-
+let upl = false;
 uploadPhoto.addEventListener("change", function (e) {
   
   const files = e.target.files;
@@ -114,6 +115,7 @@ savePhoto.addEventListener('click', function () {
     var croppedImageURL = URL.createObjectURL(blob);
     uploadPhotoLabel.style.backgroundImage = 'url("' + croppedImageURL + '")';
     uploadPhotoLabel.classList.add("upload-active");
+    upl = true;
   });
 });
 
@@ -190,18 +192,37 @@ confirmPassword.addEventListener("input", function () {
     confirmPasswordIcon.classList.remove("active");
   }
 });
-let email = "zhanatbekmukashev@gmail.com";
+let email = "aidos4@gmail.com";
 // let obj = null;
+// setDoc(doc(colRef,'user2'),{bam:'not lol'}).then(() => {
+//   console.log('User added');
+//   alert('Signup Successfully');
+// })
+// .catch(function (err) {
+//   console.log('Error: ' + err.message);
+// });
 signUp.onclick = function () {
+  event.preventDefault();
+  let language1;
+  let radios = document.getElementsByName("gender");
+  for (var radio of radios) {
+    if (radio.checked) {
+      language1=radio.value;
+    }
+  }
   const obj = {
     firstName: firstName.value,
     lastName: lastName.value,
     age: age.value,
-    language: language.value,
+    language: language1,
     createPassword: createPassword.value,
     confirmPassword: confirmPassword.value,
   };
   console.log(obj);
+  if (obj.createPassword !== obj.confirmPassword) {
+    alert('Passwords do not match. Please try again.');
+    return; // Exit the function if passwords don't match
+  }
   createUserWithEmailAndPassword(auth, email, obj.createPassword)
     .then(function (success) {
       // Check if an image URL has been stored
@@ -218,7 +239,7 @@ signUp.onclick = function () {
       }
       const uid = user.uid;
       console.log(uid);
-      const storageRef = ref(storage,'profile_pictures/${uid}');
+      const storageRef = ref(storage,'profile_pictures/'+uid);
       const uploadTask = uploadBytesResumable(storageRef, blb);
     
           uploadTask.on(
@@ -239,48 +260,58 @@ signUp.onclick = function () {
                 // Display the uploaded image (optional)
                 uploadPhotoLabel.style.backgroundImage = 'url("' + downloadURL + '")';
                 uploadPhotoLabel.classList.add("upload-active");
+
+                if (uploadedImageUrl && upl) {
+                  // Update user profile with the stored image URL
+                  setDoc(doc(colRef,uid),{
+                    uid : uid,
+                    firstName: obj.firstName,
+                    lastName: obj.lastName,
+                    age: obj.age,
+                    language: obj.language,
+                    email: email,
+                    password: obj.createPassword,
+                    profilePicture: uploadedImageUrl, // Use the stored image URL
+                  }).then(() => {
+                    console.log('User profile updated');
+                    alert('Signup Successfully');
+                  })
+                  .catch(function (err) {
+                    console.log('Error: ' + err.message);
+                  });
+                } else {
+                  // If no image URL is stored, proceed without uploading a profile picture
+                  console.log('no prof pic')
+                  setDoc(doc(colRef,uid), {
+                    uid : uid,
+                    firstName: obj.firstName,
+                    lastName: obj.lastName,
+                    age: obj.age,
+                    language: obj.language,
+                    createPassword: obj.createPassword,
+                    email: email,
+                    profilePicture: 'https://firebasestorage.googleapis.com/v0/b/polylingua-94f50.appspot.com/o/without-img.jpg?alt=media&token=fbd3f4d0-4275-4f19-b127-9950d87635e2'
+                  }).then(() => {
+                    console.log('User added');
+                    alert('Signup Successfully');
+                  })
+                  .catch(function (err) {
+                    console.log('Error: ' + err.message);
+                  });
+                }
               });
             }
-          );
-        if (uploadedImageUrl) {
-          // Update user profile with the stored image URL
-          addDoc(doc(colRef,uid),{
-            uid : uid,
-            firstName: obj.firstName,
-            lastName: obj.lastName,
-            age: obj.age,
-            language: obj.language,
-            email: email,
-            profilePicture: uploadedImageUrl, // Use the stored image URL
-          }).then(() => {
-            console.log('User profile updated');
-            alert('Signup Successfully');
-          })
-          .catch(function (err) {
-            console.log('Error: ' + err.message);
-          });
-        } else {
-          // If no image URL is stored, proceed without uploading a profile picture
-          addDoc(doc(colRef,uid), {
-            uid : uid,
-            firstName: obj.firstName,
-            lastName: obj.lastName,
-            age: obj.age,
-            language: obj.language,
-            createPassword: obj.createPassword,
-            email: email,
-          }).then(() => {
-            console.log('User added');
-            alert('Signup Successfully');
-          })
-          .catch(function (err) {
-            console.log('Error: ' + err.message);
-          });
-        }
+          )
+            
+          
+
       console.log(user.uid);
     });
+
     
 };
+
+
 onAuthStateChanged(auth, (user) => {
   if (user == null) {
     return;
