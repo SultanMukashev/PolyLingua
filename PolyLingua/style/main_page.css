@@ -221,7 +221,9 @@ body {
     color: #fff;
     font-size: 25px;
 }
-
+.translate{
+    display: flex;
+}
 .navbar-toggler i {
     line-height: 25px;
 }
@@ -330,4 +332,73 @@ label {
 
 .btn.btn-outline-primary .syrtta.syrtta-login.off {
     display: none;
+}
+
+.header__btns{
+    display: flex;
+    align-items: center;
+}
+.input__video-link{
+    margin-left: 15px;
+    display: flex;
+}
+.youtube__input{
+    background-color: transparent;
+    border: 1px solid #8A8AC3;
+    padding: 0px 15px;
+    height: 35px;
+    border-radius: 10px;
+    color: white;
+}
+.youtube__input::placeholder{
+    color: #8A8AC3;
+}
+.youtube-video__find{
+    position: relative;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+    border-radius: 10px;
+    color: white;
+    border: none;
+    background-color:#A922FD;
+}
+.youtube-video__find:disabled{
+    background-color: #8A8AC3;
+    border: none;
+}
+.loader {
+    border: 2px solid #fff;
+    /* Light grey */
+    border-top: 5px solid #A922FD;
+    /* Blue */
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 2s linear infinite;
+}
+.loader-x{
+    position: absolute;
+    top: -10px;
+    right: -5px;
+    background-color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    color: #171730;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 15px;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

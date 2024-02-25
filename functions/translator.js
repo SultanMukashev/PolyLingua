@@ -25,6 +25,10 @@ const youtube = google.youtube({
     auth: process.env.YT_API_KEY, 
 });
 
+const allowedOrigins = ['https://polylingua-94f50.web.app', 'http://127.0.0.1:5500/PolyLingua'];
+app.use(cors({
+    origin: allowedOrigins, 
+  }));
 app.use(bodyParser.json());
 
 async function main(audioFilePath, targetLanguage, sourceLanguage) {
@@ -39,10 +43,6 @@ async function main(audioFilePath, targetLanguage, sourceLanguage) {
 
     return concatenatedAudio;
 }
-const allowedOrigins = ['https://polylingua-94f50.web.app', 'http://127.0.0.1:5500/PolyLingua'];
-app.use(cors({
-    origin: allowedOrigins, 
-  }));
 async function getYouTubeVideoDetails(videoId) {
     try {
       const response = await youtube.videos.list({
@@ -102,13 +102,15 @@ app.get('/api/data', (req, res) => {
     res.send('Привет от сервера!');
 });
 
-app.post('/api/data', async (req, res) => {
+app.post('/api/data',cors({origin: allowedOrigins}) ,async (req, res) => {
     const requestData = req.body;
     const path = requestData.path;
     const optionFrom = requestData.optionFrom;
     const optionTo = requestData.optionTo;
 
     try {
+        res.header('Access-Control-Allow-Origin', 'https://polylingua-94f50.web.app');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         const concatenatedAudio = await main(path, optionTo, optionFrom);
 
         res.writeHead(200, {
@@ -119,11 +121,14 @@ app.post('/api/data', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('An error occurred');
-    }
+    }   
 });
 
-app.post('/upload-video', upload.single('video'), async (req, res) => {
+app.post('/upload-video', upload.single('video'),cors({origin: allowedOrigins}) ,async (req, res) => {
     try {
+        res.header('Access-Control-Allow-Origin', 'https://polylingua-94f50.web.app');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        
         if (!req.file) {
             return res.status(400).json({ error: 'No video file uploaded' });
         }
@@ -148,7 +153,7 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
             const videoUrl = `https://storage.cloud.google.com/${bucketName}/${filename}`;
             const videoUri = `gs://${bucketName}/${filename}`
             console.log("Success! ", videoUri, " ", videoUrl);
-            res.json({ videoUrl: videoUrl, videoUri: videoUri });
+            res.json({ videoUrl: videoUrl, videoUri: videoUri, name: filename});
         });
   
         fileStream.on('error', (err) => {
@@ -160,9 +165,11 @@ app.post('/upload-video', upload.single('video'), async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 });
-app.post('/upload-yt-video',upload.single('video'), async (req, res) => {
+app.post('/upload-yt-video',upload.single('video'),cors({origin: allowedOrigins}) ,async (req, res) => {
     try {
-      const youtubeLink = req.body.youtubeLink;
+        res.header('Access-Control-Allow-Origin', 'https://polylingua-94f50.web.app');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        const youtubeLink = req.body.youtubeLink;
 
       if (!youtubeLink) {
           return res.status(400).json({ error: 'YouTube link is missing' });
@@ -175,7 +182,7 @@ app.post('/upload-yt-video',upload.single('video'), async (req, res) => {
           const ytvideoUrl = `https://storage.cloud.google.com/${bucketName}/${ytfilename}`;
           const ytvideoUri = `gs://${bucketName}/${ytfilename}`
           console.log("Success! ",ytvideoUri," ",ytvideoUrl);
-          res.json({ videoUrl: ytvideoUrl, videoUri: ytvideoUri});
+          res.json({ videoUrl: ytvideoUrl, videoUri: ytvideoUri, name: ytfilename});
       } catch (error) {
           console.error('Error uploading video:', error);
       }

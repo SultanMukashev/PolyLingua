@@ -189,7 +189,6 @@ email.addEventListener('input', () => {
 toLogin.addEventListener('click', () => {
   window.open('index.html', '_self')
 });
-let imgUrl = '';
 async function registerUser(obj) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, obj.email, obj.createPassword);
@@ -197,16 +196,13 @@ async function registerUser(obj) {
     return obj.uid;
   } catch (error) {
     alert('Error: ' + error.message);
-    throw error; // Прекращаем выполнение из-за ошибки
+    throw error;
   }
 }
-
-// Выделение функции загрузки изображения
 async function uploadProfilePicture(uid, blob) {
   const storageRef = ref(storage, 'profile_pictures/' + uid);
   const uploadTask = uploadBytesResumable(storageRef, blob);
 
-  // Ожидание завершения загрузки
   const snapshot = await uploadTask;
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
@@ -222,7 +218,8 @@ async function updateUserProfile(uid, obj, imgUrl) {
     gender: obj.gender,
     email: obj.email,
     password: obj.createPassword,
-    profilePicture: imgUrl
+    profilePicture: imgUrl,
+    library: obj.library
   });
   localStorage.setItem('user', JSON.stringify(obj));
   window.open('index.html', '_self');
@@ -241,27 +238,24 @@ signUp.onclick = async function (event) {
     email: email.value,
     createPassword: createPassword.value,
     confirmPassword: confirmPassword.value,
-    uid: ''
+    uid: '',
+    library: []
   };
-
+  
   if (obj.createPassword !== obj.confirmPassword) {
     alert('Passwords do not match. Please try again.');
     return;
   }
   try {
-    // Регистрация пользователя и получение UID
     const uid = await registerUser(obj);
-    // Проверка, был ли предоставлен файл изображения для загрузки
-    if (blb && upl) { // Предполагается, что blb - это файл Blob изображения
+    if (blb && upl) {
       try {
         const imgUrl = await uploadProfilePicture(uid, blb);
         await updateUserProfile(uid, obj, imgUrl);
       } catch (uploadError) {
         console.error('Ошибка загрузки изображения: ', uploadError);
-        // Можно также решить продолжить регистрацию без фото профиля
       }
     } else {
-      // Установка профиля без изображения
       const defaultImgUrl = 'https://firebasestorage.googleapis.com/v0/b/polylingua-94f50.appspot.com/o/without-img.jpg?alt=media&token=fbd3f4d0-4275-4f19-b127-9950d87635e2';
       await updateUserProfile(uid, obj, defaultImgUrl);
     }
@@ -277,6 +271,4 @@ onAuthStateChanged(auth, (user) => {
   }
   const uid = user.uid;
   console.log(uid);
-  // window.open('./index.html', '_self');
-  // window.open('index.html')
 });
