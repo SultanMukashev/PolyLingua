@@ -180,7 +180,7 @@
                 <source src="" type="audio/mpeg">
                 Your browser does not support the audio tag.
               </audio>
-              <input type="range" min="0" max="100" value="50" class="slider" id="myRange">
+              <input type="range" min="0" max="100" value="50" class="slider" id="slider">
 
               <script type="module" src="./js/main__page.js"></script>
               <script>
@@ -478,6 +478,7 @@
 
         const audioData = await response.arrayBuffer();
         const audioBlob = new Blob([audioData], { type: 'audio/mp3' });
+        localStorage.setItem('audioBlob', JSON.stringify(audioBlob));
         const audioBlobUrl = URL.createObjectURL(audioBlob);
         const videoElement = document.getElementById('videoPlayer');
         const audioElement = document.getElementById('audioPlayer');
@@ -534,7 +535,7 @@
       audio.volume = slider.value / 100;
     });
 
-    document.getElementById('buttonX').addEventListener('click', () => {
+    document.getElementById('loader-x').addEventListener('click', () => {
     // Check if there's an ongoing fetch request and abort it
         if (controller) {
             controller.abort();
